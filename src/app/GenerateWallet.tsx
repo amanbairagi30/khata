@@ -116,7 +116,7 @@ export default function GenerateWallet() {
 
                     </div>
 
-                    <Button onClick={() => setInit(true)} className='w-[10rem] mt-[6rem]'>Let's Go</Button>
+                    <Button onClick={() => setInit(true)} className='w-[10rem] mt-[6rem]'>Let&apos;s Go</Button>
                 </div>
             }
 
@@ -148,7 +148,7 @@ export default function GenerateWallet() {
                             {
                                 walletDetails.map((wallet: Wallet, index: number) => {
                                     return (
-                                        <div className='flex h-fit  rounded-xl border-2 flex-col gap-5' >
+                                        <div key={index} className='flex h-fit  rounded-xl border-2 flex-col gap-5' >
                                             <div className='text-3xl font-semibold p-6 border-b-2'>Wallet {index + 1}</div>
                                             <div className='flex flex-col gap-4 px-6 pt-2 pb-6'>
                                                 <div className='flex flex-col gap-2'>
