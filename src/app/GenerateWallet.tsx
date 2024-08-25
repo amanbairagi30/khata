@@ -73,7 +73,7 @@ export default function GenerateWallet() {
 
     const getWalletFromMnemonic = (mnemonicString: string, walletIndex: number) => {
         const seed = mnemonicToSeedSync(mnemonicString);
-        const path = `m/44'/501'/0'/${walletIndex}'`; // This is the derivation path
+        const path = `m/44'/${selectedPath}'/0'/${walletIndex}'`; // This is the derivation path
         const derivedSeed = derivePath(path, seed.toString("hex")).key;
         const secret = nacl.sign.keyPair.fromSeed(derivedSeed).secretKey;
 
@@ -84,37 +84,34 @@ export default function GenerateWallet() {
     }
 
     return (
-        <div className='h-full'>
+        <div className='h-full no-scrollbar'>
             {
-
                 !(selectedPath && init) &&
-                <div className='h-full flex flex-col items-center pt-[5rem] '>
-                    <div className='w-[60%] text-4xl font-bold text-center'>Khata is a wallet management tool which works on multiple blockchains</div>
-                    <div className='w-[60%] text-center text-base py-[2rem]'>Select the blockchain</div>
+                <div className='h-full w-full flex flex-col items-center pt-[5rem] '>
+                    <div className='w-full sm:w-[60%] text-2xl md:text-4xl font-bold text-center'>Khata is a wallet management tool which works on multiple blockchains</div>
+                    <div className='w-full sm:w-[60%] text-center text-xs sm:text-base py-[2rem]'>Select the blockchain</div>
 
-                    <div>
-                        <Select onValueChange={(value) => setSelectedPath(value)}>
-                            <SelectTrigger className="w-[380px]">
-                                <SelectValue placeholder="Select" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="501">
-                                    <div className='flex w-full items-center justify-between gap-2'>
-                                        {/* <Image className='w-[2rem] h-[2rem]' src={'../assets/sol.svg'} width={500} height={500} alt={'solana'} /> */}
-                                        <Image className='w-[1.5rem] h-[1.5rem]' src={SOL} width={500} height={500} alt={'solana'} />
-                                        <span>Solana</span>
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value="60">
-                                    <div className='flex w-full items-center justify-between gap-2'>
-                                        <Image className='w-[1.5rem] h-[1.5rem]' src={ETH} width={500} height={500} alt={'solana'} />
-                                        <span>Ethereum</span>
-                                    </div>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+                    <Select onValueChange={(value) => setSelectedPath(value)}>
+                        <SelectTrigger className="w-full md:w-[380px]">
+                            <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="501">
+                                <div className='flex w-full items-center justify-between gap-2'>
+                                    {/* <Image className='w-[2rem] h-[2rem]' src={'../assets/sol.svg'} width={500} height={500} alt={'solana'} /> */}
+                                    <Image className='w-[1.5rem] h-[1.5rem]' src={SOL} width={500} height={500} alt={'solana'} />
+                                    <span>Solana</span>
+                                </div>
+                            </SelectItem>
+                            <SelectItem value="60">
+                                <div className='flex w-full items-center justify-between gap-2'>
+                                    <Image className='w-[1.5rem] h-[1.5rem]' src={ETH} width={500} height={500} alt={'solana'} />
+                                    <span>Ethereum</span>
+                                </div>
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
 
-                    </div>
 
                     <Button onClick={() => setInit(true)} className='w-[10rem] mt-[6rem]'>Let&apos;s Go</Button>
                 </div>
@@ -126,6 +123,7 @@ export default function GenerateWallet() {
                 <div>
 
                     <div>
+                        
                         <Button onClick={handleGenerateWallet}>Generate Wallet</Button>
                     </div>
                     <div className='flex flex-col gap-4 '>
@@ -140,7 +138,8 @@ export default function GenerateWallet() {
                         </div>
 
                         <div className='my-4 w-full flex items-center justify-between'>
-                            <span className='text-3xl font-semibold '>Solana Wallet</span>
+                            <span className='text-xl md:text-3xl font-semibold '>
+                                {selectedPath === '501' ? 'Solana ':'Ethereum '} Wallet</span>
                             <Button onClick={handleAddNewWallet}>Add more Wallet</Button>
                         </div>
 
