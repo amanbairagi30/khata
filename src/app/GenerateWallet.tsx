@@ -7,52 +7,169 @@ import { derivePath } from "ed25519-hd-key";
 import nacl from 'tweetnacl';
 import { Keypair } from '@solana/web3.js';
 import bs58 from "bs58"
+import { Wallet } from '@/types';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import SOL from "../assets/sol.svg";
+import ETH from "../assets/eth.svg";
+import Image from 'next/image';
+
 
 export default function GenerateWallet() {
     const [mnemonicWords, setMnemonicWords] = useState<string[]>([]);
-    const [publicKey, setPublicKey] = useState<string>('');
-    const [privateKey, setPrivateKey] = useState<string>('');
+    const [paths, setPaths] = useState<any>({
+        '501': 'solana',
+        '60': 'etherum'
+    });
+
+    const [selectedPath, setSelectedPath] = useState('')
+    const [init, setInit] = useState(false)
+
+    const [walletDetails, setWalletDetails] = useState<Wallet[]>([]);
 
     const handleGenerateWallet = () => {
-        const mnemonic = getMnemonic();
-        setMnemonicWords(mnemonic);
+        let mnemonic: string[] = [];
+        if (mnemonicWords.length === 0) {
+            mnemonic = getMnemonic();
+            setMnemonicWords(mnemonic);
+        }
 
-        const seed = mnemonicToSeedSync(mnemonic.join(" "));
-        // for (let i = 0; i < 4; i++) {
-        const path = `m/44'/501'/0'/0'`; // This is the derivation path
+        const wallet = getWalletFromMnemonic(mnemonic.join(" "), walletDetails.length);
+
+        if (wallet) {
+            setWalletDetails([...walletDetails, {
+                publicKey: wallet.publicKey,
+                privateKey: wallet.privateKey,
+                mnemonic: mnemonicWords,
+            }])
+        } else {
+            setWalletDetails([]);
+        }
+    }
+
+
+    const handleAddNewWallet = () => {
+        if (mnemonicWords.length === 0) {
+            return;
+        } else {
+            const wallet = getWalletFromMnemonic(mnemonicWords.join(" "), walletDetails.length);
+
+            if (wallet) {
+                setWalletDetails([...walletDetails, {
+                    publicKey: wallet.publicKey,
+                    privateKey: wallet.privateKey,
+                    mnemonic: mnemonicWords,
+                }])
+            } else {
+                setWalletDetails([]);
+            }
+        }
+    }
+
+    const getWalletFromMnemonic = (mnemonicString: string, walletIndex: number) => {
+        const seed = mnemonicToSeedSync(mnemonicString);
+        const path = `m/44'/501'/0'/${walletIndex}'`; // This is the derivation path
         const derivedSeed = derivePath(path, seed.toString("hex")).key;
         const secret = nacl.sign.keyPair.fromSeed(derivedSeed).secretKey;
-        console.log(derivedSeed);
-        setPrivateKey(bs58.encode(secret));
-        setPublicKey(Keypair.fromSecretKey(secret).publicKey.toBase58());
-        // setPublicKey(secret);
-        // }
+
+        return {
+            publicKey: Keypair.fromSecretKey(secret).publicKey.toBase58(),
+            privateKey: bs58.encode(secret)
+        }
     }
 
     return (
-        <div>
-            <Button onClick={handleGenerateWallet}>Generate Wallet</Button>
-            <div className='flex flex-col gap-4 '>
-                <div className='grid border-2 mt-4 rounded-md cursor-pointer p-4 grid-cols-2 lg:grid-cols-4 gap-4'>
-                    {
-                        mnemonicWords.map((item: string, index: number) => {
-                            return (
-                                <div key={index} className='border-2 rounded-lg h-[4rem] flex items-center justify-center'>{item}</div>
-                            )
-                        })
-                    }
-                </div>
+        <div className='h-full'>
+            {
 
-                <div className='my-4'>
-                    <span className='text-3xl font-semibold '>Solana Wallet</span>
-                    {/* <div>Add</div> */}
-                </div>
+                !(selectedPath && init) &&
+                <div className='h-full flex flex-col items-center pt-[5rem] '>
+                    <div className='w-[60%] text-4xl font-bold text-center'>Khata is a wallet management tool which works on multiple blockchains</div>
+                    <div className='w-[60%] text-center text-base py-[2rem]'>Select the blockchain</div>
 
-                <div className='flex flex-col gap-5'>
-                    <p>Public key : {publicKey}</p>
-                    <p>Private key : {privateKey}</p>
+                    <div>
+                        <Select onValueChange={(value) => setSelectedPath(value)}>
+                            <SelectTrigger className="w-[380px]">
+                                <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="501">
+                                    <div className='flex w-full items-center justify-between gap-2'>
+                                        {/* <Image className='w-[2rem] h-[2rem]' src={'../assets/sol.svg'} width={500} height={500} alt={'solana'} /> */}
+                                        <Image className='w-[1.5rem] h-[1.5rem]' src={SOL} width={500} height={500} alt={'solana'} />
+                                        <span>Solana</span>
+                                    </div>
+                                </SelectItem>
+                                <SelectItem value="60">
+                                    <div className='flex w-full items-center justify-between gap-2'>
+                                        <Image className='w-[1.5rem] h-[1.5rem]' src={ETH} width={500} height={500} alt={'solana'} />
+                                        <span>Ethereum</span>
+                                    </div>
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                    </div>
+
+                    <Button onClick={() => setInit(true)} className='w-[10rem] mt-[6rem]'>Let's Go</Button>
                 </div>
-            </div>
-        </div>
+            }
+
+
+            {
+                (selectedPath && init) &&
+                <div>
+
+                    <div>
+                        <Button onClick={handleGenerateWallet}>Generate Wallet</Button>
+                    </div>
+                    <div className='flex flex-col gap-4 '>
+                        <div className='grid border-2 mt-4 rounded-md cursor-pointer p-4 grid-cols-2 lg:grid-cols-4 gap-4'>
+                            {
+                                mnemonicWords.map((item: string, index: number) => {
+                                    return (
+                                        <div key={index} className='border-2 rounded-lg h-[4rem] flex items-center justify-center'>{item}</div>
+                                    )
+                                })
+                            }
+                        </div>
+
+                        <div className='my-4 w-full flex items-center justify-between'>
+                            <span className='text-3xl font-semibold '>Solana Wallet</span>
+                            <Button onClick={handleAddNewWallet}>Add more Wallet</Button>
+                        </div>
+
+                        <div className='grid grid-cols-1 h-fit gap-6 md:grid-cols-3'>
+                            {
+                                walletDetails.map((wallet: Wallet, index: number) => {
+                                    return (
+                                        <div className='flex h-fit  rounded-xl border-2 flex-col gap-5' >
+                                            <div className='text-3xl font-semibold p-6 border-b-2'>Wallet {index + 1}</div>
+                                            <div className='flex flex-col gap-4 px-6 pt-2 pb-6'>
+                                                <div className='flex flex-col gap-2'>
+                                                    <p className='text-base'>Public Key</p>
+                                                    <p className='text-gray-500 text-sm'>{wallet.publicKey.slice(0, 30)}...</p>
+                                                </div>
+                                                <div className='flex flex-col gap-2'>
+                                                    <p className='text-base'>Private Key</p>
+                                                    <p className='text-gray-500 text-sm'>{wallet.privateKey.slice(0, 35)}...</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )
+                                })
+                            }
+                        </div>
+                    </div>
+
+                </div>
+            }
+
+        </div >
     )
 }
